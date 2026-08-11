@@ -11,12 +11,12 @@ const works = [
       encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
           <defs>
-            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id="bg-aurora-room" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stop-color="#0f172a" />
               <stop offset="100%" stop-color="#22c55e" />
             </linearGradient>
           </defs>
-          <rect width="800" height="600" fill="url(#bg)" rx="40" />
+          <rect width="800" height="600" fill="url(#bg-aurora-room)" rx="40" />
           <circle cx="640" cy="180" r="120" fill="#a7f3d0" fill-opacity="0.6" />
           <text x="60" y="470" font-size="72" fill="#f8fafc" font-family="Arial, sans-serif">Aurora Room</text>
         </svg>
@@ -32,12 +32,12 @@ const works = [
       encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
           <defs>
-            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id="bg-cyber-garden" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stop-color="#111827" />
               <stop offset="100%" stop-color="#9333ea" />
             </linearGradient>
           </defs>
-          <rect width="800" height="600" fill="url(#bg)" rx="40" />
+          <rect width="800" height="600" fill="url(#bg-cyber-garden)" rx="40" />
           <path d="M130 420 C240 180 430 180 520 420" stroke="#86efac" stroke-width="24" fill="none" stroke-linecap="round" />
           <circle cx="610" cy="190" r="82" fill="#22d3ee" fill-opacity="0.75" />
           <text x="60" y="490" font-size="68" fill="#f8fafc" font-family="Arial, sans-serif">Cyber Garden</text>
@@ -54,12 +54,12 @@ const works = [
       encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
           <defs>
-            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id="bg-silent-mecha" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stop-color="#1f2937" />
               <stop offset="100%" stop-color="#f97316" />
             </linearGradient>
           </defs>
-          <rect width="800" height="600" fill="url(#bg)" rx="40" />
+          <rect width="800" height="600" fill="url(#bg-silent-mecha)" rx="40" />
           <rect x="260" y="130" width="220" height="240" rx="36" fill="#e5e7eb" fill-opacity="0.78" />
           <rect x="210" y="380" width="320" height="70" rx="35" fill="#9ca3af" fill-opacity="0.85" />
           <text x="60" y="520" font-size="68" fill="#f8fafc" font-family="Arial, sans-serif">Silent Mecha</text>
@@ -76,12 +76,12 @@ const works = [
       encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
           <defs>
-            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id="bg-coastal-cafe" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stop-color="#0f766e" />
               <stop offset="100%" stop-color="#f59e0b" />
             </linearGradient>
           </defs>
-          <rect width="800" height="600" fill="url(#bg)" rx="40" />
+          <rect width="800" height="600" fill="url(#bg-coastal-cafe)" rx="40" />
           <rect x="110" y="170" width="580" height="220" rx="28" fill="#fffbeb" fill-opacity="0.82" />
           <rect x="180" y="220" width="120" height="120" rx="20" fill="#5eead4" fill-opacity="0.8" />
           <text x="60" y="500" font-size="68" fill="#f8fafc" font-family="Arial, sans-serif">Coastal Cafe</text>
