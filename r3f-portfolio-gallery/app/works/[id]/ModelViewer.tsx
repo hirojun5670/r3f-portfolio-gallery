@@ -1,8 +1,9 @@
 "use client";
 
 import { OrbitControls, Html, useGLTF } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useMemo } from "react";
+import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 
 function Loading() {
   return (
@@ -15,7 +16,25 @@ function Loading() {
 }
 
 function Model({ assetUrl }: { assetUrl: string }) {
-  const { scene } = useGLTF(assetUrl);
+  const { gl } = useThree();
+  const ktx2Loader = useMemo(() => {
+    const loader = new KTX2Loader();
+    loader.setTranscoderPath(
+      "https://unpkg.com/three@0.185.1/examples/jsm/libs/basis/",
+    );
+    loader.detectSupport(gl);
+    return loader;
+  }, [gl]);
+
+  useEffect(() => {
+    return () => {
+      ktx2Loader.dispose();
+    };
+  }, [ktx2Loader]);
+
+  const { scene } = useGLTF(assetUrl, undefined, undefined, (loader) => {
+    loader.setKTX2Loader(ktx2Loader);
+  });
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
 
   return <primitive object={clonedScene} />;
