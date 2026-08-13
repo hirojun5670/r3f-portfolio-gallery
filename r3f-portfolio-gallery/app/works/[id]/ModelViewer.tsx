@@ -3,7 +3,7 @@
 import { OrbitControls, Html, useGLTF } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useMemo } from "react";
-import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
+import { useGltfModelLoad, GltfPreload } from "@/lib/three/GltfLoader";
 
 function Loading() {
   return (
@@ -16,34 +16,14 @@ function Loading() {
 }
 
 function Model({ assetUrl }: { assetUrl: string }) {
-  const { gl } = useThree();
-  const ktx2Loader = useMemo(() => {
-    const loader = new KTX2Loader();
-    loader.setTranscoderPath(
-      "https://unpkg.com/three@0.185.1/examples/jsm/libs/basis/",
-    );
-    loader.detectSupport(gl);
-    return loader;
-  }, [gl]);
-
-  useEffect(() => {
-    return () => {
-      ktx2Loader.dispose();
-    };
-  }, [ktx2Loader]);
-
-  const { scene } = useGLTF(assetUrl, undefined, undefined, (loader) => {
-    loader.setKTX2Loader(ktx2Loader);
-  });
+  const { scene } = useGltfModelLoad(assetUrl);
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
 
   return <primitive object={clonedScene} />;
 }
 
 export default function ModelViewer({ assetUrl }: { assetUrl: string }) {
-  useEffect(() => {
-    useGLTF.preload(assetUrl);
-  }, [assetUrl]);
+  GltfPreload(assetUrl);
 
   return (
     <div className="h-[480px] w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
