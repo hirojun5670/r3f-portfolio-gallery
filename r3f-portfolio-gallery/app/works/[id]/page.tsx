@@ -6,7 +6,7 @@ import ModelViewer from "./ModelViewer";
 const sql = neon(process.env.DATABASE_URL!);
 
 const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Work = {
   id: string;
@@ -43,6 +43,33 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
+const allowedAssetHosts = process.env.ASSET_URL_ALLOWED_HOSTS?.split(",")
+  .map((host) => host.trim().toLowerCase())
+  .filter(Boolean);
+
+function isSupportedAssetUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return false;
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+      return false;
+    }
+
+    if (allowedAssetHosts && allowedAssetHosts.length > 0) {
+      return allowedAssetHosts.includes(hostname);
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+
 export default async function WorkDetailPage({ params }: PageProps) {
   const { id } = await params;
 
@@ -52,7 +79,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
 
   const work = await getWorkById(id);
 
-  if (!work) {
+  if (!work || !isSupportedAssetUrl(work.asset_url)) {
     notFound();
   }
 

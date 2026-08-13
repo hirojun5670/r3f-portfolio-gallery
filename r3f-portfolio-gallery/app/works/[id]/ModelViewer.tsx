@@ -2,7 +2,7 @@
 
 import { OrbitControls, Html, useGLTF } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 
 function Loading() {
   return (
@@ -16,11 +16,16 @@ function Loading() {
 
 function Model({ assetUrl }: { assetUrl: string }) {
   const { scene } = useGLTF(assetUrl);
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
 
-  return <primitive object={scene} />;
+  return <primitive object={clonedScene} />;
 }
 
 export default function ModelViewer({ assetUrl }: { assetUrl: string }) {
+  useEffect(() => {
+    useGLTF.preload(assetUrl);
+  }, [assetUrl]);
+
   return (
     <div className="h-[480px] w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
       <Canvas camera={{ position: [0, 1.2, 3.2], fov: 45 }}>
