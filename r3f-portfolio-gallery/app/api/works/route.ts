@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { put } from "@vercel/blob";
+import { del, put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 function getStringField(formData: FormData, key: string): string {
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   const sql = neon(databaseUrl);
 
   const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().startsWith("multipart/form-data")) {
+  if (!contentType.toLowerCase().includes("multipart/form-data")) {
     return NextResponse.json(
       { error: "Content-Type must be multipart/form-data." },
       { status: 415 }
@@ -85,24 +85,38 @@ export async function POST(request: Request) {
       }
     );
 
-    const assetBlob = await put(`models/${sanitizeFilename(asset.name)}`, asset, {
-      access: "public",
-      addRandomSuffix: true,
-      contentType: asset.type || undefined,
-    });
+    let assetBlobUrl: string | null = null;
 
-    const rows = await sql`
-      INSERT INTO works (title, description, thumbnail_url, asset_url, tags)
-      VALUES (${title}, ${description}, ${thumbnailBlob.url}, ${assetBlob.url}, ${tags})
-      RETURNING id
-    `;
+    try {
+      const assetBlob = await put(`models/${sanitizeFilename(asset.name)}`, asset, {
+        access: "public",
+        addRandomSuffix: true,
+        contentType: asset.type || undefined,
+      });
+      assetBlobUrl = assetBlob.url;
 
-    const createdId = rows[0]?.id;
-    if (typeof createdId !== "string") {
-      throw new Error("Failed to read inserted id.");
+      const rows = await sql`
+        INSERT INTO works (title, description, thumbnail_url, asset_url, tags)
+        VALUES (${title}, ${description}, ${thumbnailBlob.url}, ${assetBlob.url}, ${tags})
+        RETURNING id
+      `;
+
+      const createdId = rows[0]?.id;
+      if (createdId == null) {
+        throw new Error("Failed to read inserted id.");
+      }
+
+      return NextResponse.json({ id: createdId }, { status: 201 });
+    } catch (error) {
+      const urlsToDelete = assetBlobUrl
+        ? [thumbnailBlob.url, assetBlobUrl]
+        : [thumbnailBlob.url];
+
+      await del(urlsToDelete).catch((deleteError) => {
+        console.error("[POST /api/works] blob cleanup failed", deleteError);
+      });
+      throw error;
     }
-
-    return NextResponse.json({ id: createdId }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/works] failed", error);
     return NextResponse.json(
