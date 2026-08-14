@@ -1,26 +1,56 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useState, type FormEvent } from "react";
 
 export default function AdminPage() {
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [asset, setAsset] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log({
-      title,
-      description,
-      tags: tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-      thumbnail,
-      asset,
-    });
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("tags", tags);
+    if (thumbnail) formData.append("thumbnail", thumbnail);
+    if (asset) formData.append("asset", asset);
+
+    try {
+      const response = await fetch("/api/works", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.status === 201) {
+        setTitle("");
+        setDescription("");
+        setTags("");
+        setThumbnail(null);
+        setAsset(null);
+        formRef.current?.reset();
+        router.push("/");
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setErrorMessage(
+          (data as { error?: string }).error ?? `エラーが発生しました (${response.status})`
+        );
+      }
+    } catch {
+      setErrorMessage("ネットワークエラーが発生しました。再度お試しください。");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -34,9 +64,15 @@ export default function AdminPage() {
         </header>
 
         <form
+          ref={formRef}
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.35)]"
         >
+          {errorMessage && (
+            <p role="alert" className="rounded-xl bg-red-500/15 px-4 py-3 text-sm text-red-300 ring-1 ring-red-400/30">
+              {errorMessage}
+            </p>
+          )}
           {/* Title */}
           <div className="flex flex-col gap-1.5">
             <label
@@ -129,9 +165,10 @@ export default function AdminPage() {
           {/* Submit */}
           <button
             type="submit"
-            className="mt-2 rounded-xl bg-emerald-400/15 px-6 py-3 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-300/30 transition hover:bg-emerald-400/25 hover:ring-emerald-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+            disabled={isSubmitting}
+            className="mt-2 rounded-xl bg-emerald-400/15 px-6 py-3 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-300/30 transition hover:bg-emerald-400/25 hover:ring-emerald-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            送信する
+            {isSubmitting ? "送信中..." : "送信する"}
           </button>
         </form>
       </div>
