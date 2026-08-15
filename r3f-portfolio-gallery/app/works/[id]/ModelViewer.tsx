@@ -6,6 +6,7 @@ import { Suspense, useLayoutEffect, useMemo, useRef } from "react";
 import { Box3, MathUtils, PerspectiveCamera as ThreePerspectiveCamera, Sphere, Vector3 } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useGltfModelLoad, GltfPreload } from "@/lib/three/GltfLoader";
+import * as THREE from 'three'
 
 const DEFAULT_CAMERA_DIRECTION = new Vector3(1, 0.7, 1).normalize();
 const MIN_CAMERA_DISTANCE = 0.75;
@@ -36,15 +37,19 @@ function ModelScene({ assetUrl }: { assetUrl: string }) {
   const { scene } = useGltfModelLoad(assetUrl);
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
   const { size } = useThree();
-  const cameraRef = useRef<ThreePerspectiveCamera>(null);
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
+  const { camera } = useThree();
+  const pCamera = camera as THREE.PerspectiveCamera;
+  pCamera.fov = 45;
+  pCamera.updateProjectionMatrix();
+
   useLayoutEffect(() => {
-    if (!(cameraRef.current instanceof ThreePerspectiveCamera)) {
+    if (!(pCamera instanceof ThreePerspectiveCamera)) {
       return;
     }
 
-    const camera = cameraRef.current;
+    const camera = pCamera;
 
     clonedScene.updateWorldMatrix(true, true);
     const box = new Box3().setFromObject(clonedScene);
@@ -63,26 +68,28 @@ function ModelScene({ assetUrl }: { assetUrl: string }) {
     camera.position.copy(cameraPosition);
     camera.near = Math.max(0.1, framedDistance / 100);
     camera.far = Math.max(framedDistance * 8, radius * 16);
-    camera.lookAt(bounds.center);
     camera.updateProjectionMatrix();
+    camera.lookAt(bounds.center);
+    camera.updateMatrix();
 
     if (controlsRef.current) {
       controlsRef.current.target.copy(bounds.center);
       controlsRef.current.minDistance = Math.max(radius * 1.25, MIN_CAMERA_DISTANCE);
       controlsRef.current.maxDistance = Math.max(framedDistance * 3.5, radius * 8);
       controlsRef.current.update();
+
     }
-  }, [clonedScene, size.height, size.width]);
+  }, [camera, size.height, size.width]);
+
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={45} position={[0, 1.2, 3.2]} />
+      <OrbitControls ref={controlsRef} enablePan={false} />
       <ambientLight intensity={0.45} />
       <directionalLight position={[6, 8, 6]} intensity={1.75} />
       <directionalLight position={[-5, 3, -4]} intensity={0.55} />
       <Environment preset="studio" />
       <primitive object={clonedScene} />
-      <OrbitControls ref={controlsRef} enablePan={false} />
     </>
   );
 }
