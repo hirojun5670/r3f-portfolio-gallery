@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { del, put } from "@vercel/blob";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 function getStringField(formData: FormData, key: string): string {
@@ -33,6 +34,41 @@ function sanitizeFilename(name: string): string {
     .split(/[\\/]/)
     .pop()
     ?.replace(/[^a-zA-Z0-9._-]/g, "-") || "file";
+}
+
+export async function GET() {
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    return NextResponse.json(
+      { error: "Server configuration is missing." },
+      { status: 500 }
+    );
+  }
+
+  const sql = neon(databaseUrl);
+
+  try {
+    const rows = await sql`
+      SELECT id, title, thumbnail_url
+      FROM works
+      ORDER BY created_at DESC
+    `;
+
+    return NextResponse.json(
+      rows.map((row) => ({
+        id: row.id as string,
+        title: row.title as string,
+        thumbnail_url: row.thumbnail_url as string,
+      }))
+    );
+  } catch (error) {
+    console.error("[GET /api/works] failed", error);
+    return NextResponse.json(
+      { error: "Failed to fetch works." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -106,6 +142,7 @@ export async function POST(request: Request) {
         throw new Error("Failed to read inserted id.");
       }
 
+      revalidatePath("/");
       return NextResponse.json({ id: createdId }, { status: 201 });
     } catch (error) {
       const urlsToDelete = assetBlobUrl
