@@ -8,7 +8,7 @@ const UNAUTHORIZED = new NextResponse("Unauthorized", {
     },
 });
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminPassword) {
@@ -42,6 +42,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/api/works/:path*"],
-    runtime: "nodejs",
+    matcher: ["/admin/:path*", "/api/works/:path*"]
 };
