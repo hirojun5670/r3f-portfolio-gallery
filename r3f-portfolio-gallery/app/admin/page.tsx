@@ -1,7 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+
+type WorkSummary = {
+  id: string;
+  title: string;
+  thumbnail_url: string;
+};
 
 export default function AdminPage() {
   const router = useRouter();
@@ -13,6 +20,54 @@ export default function AdminPage() {
   const [asset, setAsset] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [works, setWorks] = useState<WorkSummary[]>([]);
+  const [isLoadingWorks, setIsLoadingWorks] = useState(true);
+  const [worksErrorMessage, setWorksErrorMessage] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function fetchWorks() {
+      setIsLoadingWorks(true);
+      setWorksErrorMessage(null);
+
+      try {
+        const response = await fetch("/api/works", { cache: "no-store" });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(
+            (data as { error?: string }).error ??
+              `一覧の取得に失敗しました (${response.status})`
+          );
+        }
+
+        const data = await response.json();
+        if (!ignore) {
+          setWorks(Array.isArray(data) ? (data as WorkSummary[]) : []);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setWorksErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "一覧の取得に失敗しました。"
+          );
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoadingWorks(false);
+        }
+      }
+    }
+
+    fetchWorks();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,10 +101,41 @@ export default function AdminPage() {
           (data as { error?: string }).error ?? `エラーが発生しました (${response.status})`
         );
       }
+
     } catch {
       setErrorMessage("ネットワークエラーが発生しました。再度お試しください。");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleDeleteWork(work: WorkSummary) {
+    const shouldDelete = window.confirm(`「${work.title}」を削除しますか？`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setDeletingId(work.id);
+    setWorksErrorMessage(null);
+
+    try {
+      const response = await fetch(`/api/works/${work.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.status === 204) {
+        setWorks((prev) => prev.filter((item) => item.id !== work.id));
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+      setWorksErrorMessage(
+        (data as { error?: string }).error ?? `削除に失敗しました (${response.status})`
+      );
+    } catch {
+      setWorksErrorMessage("ネットワークエラーが発生しました。再度お試しください。");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -171,6 +257,52 @@ export default function AdminPage() {
             {isSubmitting ? "送信中..." : "送信する"}
           </button>
         </form>
+
+        <section className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.35)]">
+          <h2 className="text-xl font-semibold">既存作品</h2>
+
+          {worksErrorMessage && (
+            <p
+              role="alert"
+              className="rounded-xl bg-red-500/15 px-4 py-3 text-sm text-red-300 ring-1 ring-red-400/30"
+            >
+              {worksErrorMessage}
+            </p>
+          )}
+
+          {isLoadingWorks ? (
+            <p className="text-sm text-slate-300">読み込み中...</p>
+          ) : works.length === 0 ? (
+            <p className="text-sm text-slate-300">登録済みの作品はありません。</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {works.map((work) => (
+                <li
+                  key={work.id}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/60 p-3"
+                >
+                  <Image
+                    src={work.thumbnail_url}
+                    alt={`${work.title} のサムネイル`}
+                    width={64}
+                    height={48}
+                    className="h-12 w-16 rounded-lg border border-white/10 object-cover"
+                    unoptimized
+                  />
+                  <p className="flex-1 text-sm text-slate-100">{work.title}</p>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteWork(work)}
+                    disabled={deletingId === work.id}
+                    className="rounded-lg bg-red-500/15 px-3 py-1.5 text-xs font-semibold text-red-200 ring-1 ring-red-400/30 transition hover:bg-red-500/25 hover:ring-red-400/50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {deletingId === work.id ? "削除中..." : "削除"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </main>
   );
