@@ -3,14 +3,13 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { DEFAULT_BACKGROUND_COLOR } from "@/lib/works/constants";
 
 type WorkSummary = {
   id: string;
   title: string;
   thumbnail_url: string;
 };
-
-const DEFAULT_BACKGROUND_COLOR = "#2d4275";
 
 export default function AdminPage() {
   const router = useRouter();

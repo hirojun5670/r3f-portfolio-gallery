@@ -1,14 +1,13 @@
 import { neon } from "@neondatabase/serverless";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DEFAULT_BACKGROUND_COLOR } from "@/lib/works/constants";
 import ModelViewer from "./ModelViewer";
 
 const sql = neon(process.env.DATABASE_URL!);
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFAULT_BACKGROUND_COLOR = "#2d4275";
-
 type Work = {
   id: string;
   title: string;
@@ -38,7 +37,7 @@ async function getWorkById(id: string): Promise<Work | null> {
     description: (row.description as string | null) ?? null,
     asset_url: row.asset_url as string,
     tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
-    background_color: (row.background_color as string) || DEFAULT_BACKGROUND_COLOR,
+    background_color: row.background_color as string,
   };
 }
 

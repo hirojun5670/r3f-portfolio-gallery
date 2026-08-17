@@ -2,8 +2,8 @@ import { neon } from "@neondatabase/serverless";
 import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { DEFAULT_BACKGROUND_COLOR } from "@/lib/works/constants";
 
-const DEFAULT_BACKGROUND_COLOR = "#2d4275";
 const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 function getStringField(formData: FormData, key: string): string {
