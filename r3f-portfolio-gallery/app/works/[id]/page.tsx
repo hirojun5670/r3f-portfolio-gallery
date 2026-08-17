@@ -7,6 +7,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DEFAULT_BACKGROUND_COLOR = "#2d4275";
 
 type Work = {
   id: string;
@@ -14,11 +15,12 @@ type Work = {
   description: string | null;
   asset_url: string;
   tags: string[];
+  background_color: string;
 };
 
 async function getWorkById(id: string): Promise<Work | null> {
   const rows = await sql`
-    SELECT id, title, description, asset_url, tags
+    SELECT id, title, description, asset_url, tags, COALESCE(background_color, ${DEFAULT_BACKGROUND_COLOR}) AS background_color
     FROM works
     WHERE id = ${id}
     LIMIT 1
@@ -36,6 +38,7 @@ async function getWorkById(id: string): Promise<Work | null> {
     description: (row.description as string | null) ?? null,
     asset_url: row.asset_url as string,
     tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
+    background_color: (row.background_color as string) || DEFAULT_BACKGROUND_COLOR,
   };
 }
 
@@ -114,7 +117,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
           )}
         </header>
 
-        <ModelViewer assetUrl={work.asset_url} />
+        <ModelViewer assetUrl={work.asset_url} backgroundColor={work.background_color} />
       </div>
     </main>
   );

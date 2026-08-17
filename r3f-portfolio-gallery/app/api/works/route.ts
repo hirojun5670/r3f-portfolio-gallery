@@ -3,6 +3,9 @@ import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
+const DEFAULT_BACKGROUND_COLOR = "#2d4275";
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
 function getStringField(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -34,6 +37,11 @@ function sanitizeFilename(name: string): string {
     .split(/[\\/]/)
     .pop()
     ?.replace(/[^a-zA-Z0-9._-]/g, "-") || "file";
+}
+
+function parseBackgroundColor(formData: FormData): string {
+  const value = getStringField(formData, "backgroundColor").trim();
+  return HEX_COLOR_PATTERN.test(value) ? value.toLowerCase() : DEFAULT_BACKGROUND_COLOR;
 }
 
 export async function GET() {
@@ -97,6 +105,7 @@ export async function POST(request: Request) {
     const descriptionValue = getStringField(formData, "description").trim();
     const description = descriptionValue === "" ? null : descriptionValue;
     const tags = parseTags(formData);
+    const backgroundColor = parseBackgroundColor(formData);
 
     const thumbnail = getRequiredFileField(formData, "thumbnail");
     const asset = getRequiredFileField(formData, "asset");
@@ -132,8 +141,8 @@ export async function POST(request: Request) {
       assetBlobUrl = assetBlob.url;
 
       const rows = await sql`
-        INSERT INTO works (title, description, thumbnail_url, asset_url, tags)
-        VALUES (${title}, ${description}, ${thumbnailBlob.url}, ${assetBlob.url}, ${tags})
+        INSERT INTO works (title, description, thumbnail_url, asset_url, tags, background_color)
+        VALUES (${title}, ${description}, ${thumbnailBlob.url}, ${assetBlob.url}, ${tags}, ${backgroundColor})
         RETURNING id
       `;
 

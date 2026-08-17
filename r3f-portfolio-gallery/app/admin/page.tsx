@@ -10,12 +10,15 @@ type WorkSummary = {
   thumbnail_url: string;
 };
 
+const DEFAULT_BACKGROUND_COLOR = "#2d4275";
+
 export default function AdminPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_BACKGROUND_COLOR);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [asset, setAsset] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +81,7 @@ export default function AdminPage() {
     formData.append("title", title);
     formData.append("description", description);
     formData.append("tags", tags);
+    formData.append("backgroundColor", backgroundColor);
     if (thumbnail) formData.append("thumbnail", thumbnail);
     if (asset) formData.append("asset", asset);
 
@@ -91,6 +95,7 @@ export default function AdminPage() {
         setTitle("");
         setDescription("");
         setTags("");
+        setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
         setThumbnail(null);
         setAsset(null);
         formRef.current?.reset();
@@ -211,6 +216,23 @@ export default function AdminPage() {
               onChange={(e) => setTags(e.target.value)}
               placeholder="例: Three.js, React, WebGL（カンマ区切り）"
               className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2.5 text-sm text-slate-50 placeholder-slate-500 outline-none transition focus:border-emerald-300/50 focus:ring-1 focus:ring-emerald-300/50"
+            />
+          </div>
+
+          {/* Canvas Background Color */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="backgroundColor"
+              className="text-sm font-medium text-slate-200"
+            >
+              Canvas背景色
+            </label>
+            <input
+              id="backgroundColor"
+              type="color"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+              className="h-11 w-20 cursor-pointer rounded-xl border border-white/10 bg-slate-900 p-1 outline-none transition focus:border-emerald-300/50 focus:ring-1 focus:ring-emerald-300/50"
             />
           </div>
 
