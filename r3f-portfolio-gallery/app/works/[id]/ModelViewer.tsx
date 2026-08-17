@@ -33,7 +33,7 @@ function computeFrameDistance(camera: ThreePerspectiveCamera, radius: number, as
   );
 }
 
-function ModelScene({ assetUrl }: { assetUrl: string }) {
+function ModelScene({ assetUrl, backgroundColor }: { assetUrl: string; backgroundColor: string }) {
   const { scene } = useGltfModelLoad(assetUrl);
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
   const { size } = useThree();
@@ -84,6 +84,7 @@ function ModelScene({ assetUrl }: { assetUrl: string }) {
 
   return (
     <>
+      <color attach="background" args={[backgroundColor]} />
       <OrbitControls ref={controlsRef} enablePan={false} />
       <ambientLight intensity={0.45} />
       <directionalLight position={[6, 8, 6]} intensity={1.75} />
@@ -94,14 +95,20 @@ function ModelScene({ assetUrl }: { assetUrl: string }) {
   );
 }
 
-export default function ModelViewer({ assetUrl }: { assetUrl: string }) {
+export default function ModelViewer({
+  assetUrl,
+  backgroundColor,
+}: {
+  assetUrl: string;
+  backgroundColor: string;
+}) {
   GltfPreload(assetUrl);
 
   return (
     <div className="h-[480px] w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
       <Canvas>
         <Suspense fallback={<Loading />}>
-          <ModelScene assetUrl={assetUrl} />
+          <ModelScene assetUrl={assetUrl} backgroundColor={backgroundColor} />
         </Suspense>
       </Canvas>
     </div>
