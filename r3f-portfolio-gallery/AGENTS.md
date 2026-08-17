@@ -30,6 +30,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | asset_url | text | Blob上のglTF/VRMファイルURL |
 | tags | text[] | 使用ツールなど |
 | created_at | timestamptz | 作成日時 |
+| background_color | text | 作品ごとの背景色(デフォルト: #0f172a) |
 
 ## 機能一覧
 - 一覧ページ: works一覧をカードグリッド表示
