@@ -1,0 +1,1 @@
+ALTER TABLE works ADD COLUMN background_color TEXT DEFAULT '#2d4275';
