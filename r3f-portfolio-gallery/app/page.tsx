@@ -39,7 +39,7 @@ export default async function Home() {
               作品一覧
             </h1>
             <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-              スマホからPCまで崩れにくいグリッドで表示します。
+              制作した作品の一覧を紹介しています。
             </p>
           </div>
         </header>
